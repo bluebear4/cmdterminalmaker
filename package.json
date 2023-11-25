@@ -14,10 +14,77 @@
   "contributes": {
     "commands": [
       {
-        "command": "cmdterminalmaker.helloWorld",
-        "title": "Hello World"
+        "command": "cmdterminalmaker.createTerminal",
+        "title": "new terminal and run"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "CMD Terminal Maker",
+      "properties": {
+        "cmdterminalmaker.commands": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "terminalName": {
+                "type": "string",
+                "description": "终端名称"
+              },
+              "command": {
+                "type": "string",
+                "description": "执行的命令"
+              },
+              "name": {
+                "type": "string",
+                "description": "名称"
+              },
+              "parameters": {
+                "type": [
+                  "object",
+                  "array"
+                ],
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "default": {
+                      "type": "string"
+                    },
+                    "chosen": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "placeHolder": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "properties": {
+                  "default": {
+                    "type": "string"
+                  },
+                  "placeHolder": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
