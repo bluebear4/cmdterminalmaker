@@ -1,8 +1,9 @@
 {
   "name": "cmdterminalmaker",
   "displayName": "CmdTerminalMaker",
-  "description": "创建vscode终端 重命名",
+  "description": "通过配置 创建具名vscode终端 并执行命令",
   "version": "0.0.1",
+  "publisher": "bluebear",
   "repository": {
     "type": "git",
     "url": "https://github.com/bluebear4/cmdterminalmaker.git"
