@@ -2,7 +2,7 @@
   "name": "cmdterminalmaker",
   "displayName": "CmdTerminalMaker",
   "description": "通过配置 创建具名vscode终端 并执行命令",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "bluebear",
   "icon": "icon.png",
   "repository": {
@@ -32,6 +32,12 @@
           "items": {
             "type": "object",
             "properties": {
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
               "terminalName": {
                 "type": "string",
                 "description": "终端名称"
@@ -45,10 +51,13 @@
                 "description": "名称"
               },
               "parameters": {
-                "type": [
-                  "object",
-                  "array"
-                ],
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "type": "array",
                 "items": {
                   "type": "object",
                   "properties": {
@@ -68,6 +77,12 @@
                           },
                           "description": {
                             "type": "string"
+                          },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
                           }
                         }
                       }
@@ -76,18 +91,17 @@
                       "type": "string"
                     }
                   }
-                },
-                "properties": {
-                  "default": {
-                    "type": "string"
-                  },
-                  "placeHolder": {
-                    "type": "string"
-                  }
                 }
               }
             }
           }
+        },
+        "cmdterminalmaker.showTags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "显示的tag"
         }
       }
     }
