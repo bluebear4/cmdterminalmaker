@@ -2,7 +2,7 @@
   "name": "cmdterminalmaker",
   "displayName": "CmdTerminalMaker",
   "description": "通过配置 创建具名vscode终端 并执行命令",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "bluebear",
   "icon": "icon.png",
   "repository": {
@@ -48,7 +48,7 @@
               },
               "name": {
                 "type": "string",
-                "description": "名称"
+                "description": "命令名称"
               },
               "parameters": {
                 "tags": {
@@ -62,10 +62,16 @@
                   "type": "object",
                   "properties": {
                     "name": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "参数名称"
                     },
                     "default": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "参数默认值"
+                    },
+                    "sortByTime": {
+                      "type": "boolean",
+                      "description": "参数是否按选择时间倒序"
                     },
                     "chosen": {
                       "type": "array",
@@ -73,12 +79,21 @@
                         "type": "object",
                         "properties": {
                           "label": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "选项"
                           },
                           "description": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "选项描述"
                           },
                           "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "description": "命中showtag才展示"
+                            }
+                          },
+                          "addTags": {
                             "type": "array",
                             "items": {
                               "type": "string"

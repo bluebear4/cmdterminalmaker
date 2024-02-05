@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 
 interface CommandContext {
-	showTags?: string[]
+	showTags?: string[];
+	parameter2ts: Map<string, number>;
 }
 
 function visable<T extends { tags?: string[] }>(arg: T, showTags?: string[]): boolean {
@@ -14,7 +15,8 @@ interface Parameter {
 	name: string;
 	default?: string;
 	placeHolder?: string;
-	chosen?: { label: string; description?: string; tags: string[] }[];
+	chosen?: { label: string; description?: string; tags: string[]; addTags: string[] }[];
+	sortByTime?: boolean
 }
 
 class Command {
@@ -22,14 +24,14 @@ class Command {
 	name: string = '';
 	command: string = '';
 	terminalName?: string;
-	parameter: Parameter[];
+	parameters: Parameter[];
 
-	constructor(name: string, command: string, terminalName?: string, parameter?: Parameter[], tags?: string[]) {
+	constructor(name: string, command: string, terminalName?: string, parameters?: Parameter[], tags?: string[]) {
 		this.tags = tags;
 		this.name = name;
 		this.command = command;
 		this.terminalName = terminalName;
-		this.parameter = parameter ?? [];
+		this.parameters = parameters ?? [];
 	}
 
 	async execute(context: CommandContext) {
@@ -41,18 +43,33 @@ class Command {
 
 	async getParameter(context: CommandContext): Promise<string[]> {
 		let parameters: string[] = [];
-		const { showTags } = context;
-		for (let parameter of this.parameter) {
+		const { showTags, parameter2ts } = context;
+		const tempShowTags = [...showTags ?? []];
+		const pOrder = ['label', 'description', 'tags', 'addTags']
+		for (let parameter of this.parameters) {
 			if (!visable(parameter, showTags)) continue;
-			let value = undefined;
+			let value: string | undefined = undefined;
 			if (parameter.chosen?.length) {
-				value = (await vscode.window.showQuickPick(
-					parameter.chosen.filter(choose => visable(choose, showTags))
-					.map(({label, description}) => ({label, description})), {
+				if (parameter.sortByTime) {
+					parameter.chosen = parameter.chosen
+						.sort((a, b) => (parameter2ts.get(JSON.stringify(b, pOrder)) ?? 0)
+							- (parameter2ts.get(JSON.stringify(a, pOrder)) ?? 0))
+				}
+				const chosenParameters = new Map(
+					parameter.chosen
+						.filter(choose => visable(choose, tempShowTags))
+						.map((p) => ([p.label, p])))
+				const chosen = await vscode.window.showQuickPick(
+					parameter.chosen.filter(choose => visable(choose, tempShowTags))
+						.map(({ label, description }) => ({ label, description })), {
 					placeHolder: parameter.placeHolder,
 					matchOnDescription: true,
 					ignoreFocusOut: true,
-				}))?.label;
+				})
+				value = chosen?.label;
+				const chosenParameter = chosenParameters.get(value ?? '')
+				if (chosenParameter) parameter2ts.set(JSON.stringify(chosenParameter, pOrder), +new Date());
+				tempShowTags?.push(...chosenParameter?.addTags ?? [])
 			} else {
 				value = await vscode.window.showInputBox({
 					prompt: `为命令 ${this.command} ${parameters.join(' ')} ${parameters.length > 0 ? '继续' : ''}输入参数 ${parameter.name ?? ''} `,
@@ -104,13 +121,14 @@ async function executeCommands(commands: Command[], context: CommandContext) {
 }
 
 export function activate(context: vscode.ExtensionContext) {
+	let parameter2ts: Map<string, number> = context.globalState.get('parameter2ts') ?? new Map<string, number>();
 	let create_cmd = vscode.commands.registerCommand('cmdterminalmaker.createTerminal', async () => {
 		const showTags: string[] | undefined = vscode.workspace.getConfiguration('cmdterminalmaker').get<string[]>('showTags');
 		const commandConfigs: Command[] = vscode.workspace.getConfiguration('cmdterminalmaker').get<Command[]>('commands') ?? [];
 		const commands = commandConfigs
 			.map((config) => {
-				const { name, command, terminalName, parameter, tags } = config as Command;
-				return new Command(name, command, terminalName, parameter, tags);
+				const { name, command, terminalName, parameters: parameters, tags } = config as Command;
+				return new Command(name, command, terminalName, parameters, tags);
 			}).filter((config) => visable(config, showTags));
 		const name2commands: Map<string, Command> = new Map(commands.map(command => [command.name, command]));
 		const chosenCmmandNames = await vscode.window.showQuickPick(commands.map(command => command.name), {
@@ -118,7 +136,7 @@ export function activate(context: vscode.ExtensionContext) {
 			canPickMany: true,
 			matchOnDescription: true
 		});
-		await executeCommands(chosenCmmandNames?.map(name => name2commands.get(name) as Command) ?? [], { showTags });
+		await executeCommands(chosenCmmandNames?.map(name => name2commands.get(name) as Command) ?? [], { showTags, parameter2ts });
 	});
 	context.subscriptions.push(create_cmd);
 }
